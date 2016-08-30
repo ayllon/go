@@ -9,28 +9,19 @@ type (
 	Edge interface {
 		GetSource() string
 		GetDestination() string
-		Less(Edge) bool
 	}
 
-	// Edges is an alias for a slice of Edge
-	Edges []Edge
+	// Edges is a container for Edge types that must be sortable
+	Edges interface {
+		sort.Interface
+		Get(i int) Edge
+		Append(e Edge)
+	}
 
 	forest struct {
 		setLabel map[string]string
 	}
 )
-
-func (es Edges) Len() int {
-	return len(es)
-}
-
-func (es Edges) Less(i, j int) bool {
-	return es[i].Less(es[j])
-}
-
-func (es Edges) Swap(i, j int) {
-	es[i], es[j] = es[j], es[i]
-}
 
 func (f *forest) addVertex(id string) {
 	f.setLabel[id] = id
@@ -55,26 +46,24 @@ func (f *forest) union(a, b string) bool {
 
 // Kruskal returns the min spanning tree (or forest, if disconnected) of the input graph
 // modeled as its list of edges.
-func Kruskal(edges Edges) Edges {
+// Beware: the algorithm runs in place, so edges will be sorted.
+func Kruskal(edges Edges, out Edges) {
 	f := forest{
 		setLabel: make(map[string]string),
 	}
 
-	for _, edge := range edges {
-		f.addVertex(edge.GetSource())
-		f.addVertex(edge.GetDestination())
+	for i := 0; i < edges.Len(); i++ {
+		e := edges.Get(i)
+		f.addVertex(e.GetSource())
+		f.addVertex(e.GetDestination())
 	}
 
-	edgesCopy := make(Edges, len(edges))
-	copy(edgesCopy, edges)
-	sort.Sort(edgesCopy)
+	sort.Sort(edges)
 
-	minSpanForest := make(Edges, 0)
-	for _, edge := range edgesCopy {
-		if f.union(edge.GetSource(), edge.GetDestination()) {
-			minSpanForest = append(minSpanForest, edge)
+	for i := 0; i < edges.Len(); i++ {
+		e := edges.Get(i)
+		if f.union(e.GetSource(), e.GetDestination()) {
+			out.Append(e)
 		}
 	}
-
-	return minSpanForest
 }
