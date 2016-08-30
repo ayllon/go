@@ -5,12 +5,14 @@ import (
 )
 
 type (
+	// Edge is an interface that must be implemented by the types passed to Kruskal
 	Edge interface {
 		GetSource() string
 		GetDestination() string
 		Less(Edge) bool
 	}
 
+	// Edges is an alias for a slice of Edge
 	Edges []Edge
 
 	forest struct {
@@ -51,6 +53,8 @@ func (f *forest) union(a, b string) bool {
 	return true
 }
 
+// Kruskal returns the min spanning tree (or forest, if disconnected) of the input graph
+// modeled as its list of edges.
 func Kruskal(edges Edges) Edges {
 	f := forest{
 		setLabel: make(map[string]string),
