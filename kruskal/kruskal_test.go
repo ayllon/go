@@ -1,4 +1,4 @@
-package algo
+package kruskal
 
 import (
 	"fmt"
