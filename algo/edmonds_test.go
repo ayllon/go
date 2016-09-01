@@ -86,17 +86,17 @@ func TestEdmondsTwoLoop(t *testing.T) {
 func TestEdmondsNetwork(t *testing.T) {
 	edges := []Edge{
 		TestEdge{Source: "a", Destination: "b", Weight: 16},
-		//TestEdge{Source: "b", Destination: "e", Weight: 20},
-		//TestEdge{Source: "e", Destination: "g", Weight: 11},
-		//TestEdge{Source: "g", Destination: "f", Weight: 27},
-		//		TestEdge{Source: "f", Destination: "c", Weight: 31},
-		//TestEdge{Source: "c", Destination: "a", Weight: 12},
+		TestEdge{Source: "b", Destination: "e", Weight: 20},
+		TestEdge{Source: "e", Destination: "g", Weight: 11},
+		TestEdge{Source: "g", Destination: "f", Weight: 27},
+		TestEdge{Source: "f", Destination: "c", Weight: 31},
+		TestEdge{Source: "c", Destination: "a", Weight: 12},
 		TestEdge{Source: "a", Destination: "d", Weight: 21},
-		//TestEdge{Source: "b", Destination: "d", Weight: 17},
-		//TestEdge{Source: "e", Destination: "d", Weight: 18},
-		//TestEdge{Source: "g", Destination: "d", Weight: 23},
-		//TestEdge{Source: "f", Destination: "d", Weight: 19},
-		//TestEdge{Source: "c", Destination: "d", Weight: 28},
+		TestEdge{Source: "b", Destination: "d", Weight: 17},
+		TestEdge{Source: "e", Destination: "d", Weight: 18},
+		TestEdge{Source: "g", Destination: "d", Weight: 23},
+		TestEdge{Source: "f", Destination: "d", Weight: 19},
+		TestEdge{Source: "c", Destination: "d", Weight: 28},
 	}
 
 	result := []Edge{}
