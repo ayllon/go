@@ -104,6 +104,7 @@ func Edmonds(root string, edges []Edge, out *[]Edge) {
 		g.Vertices[e.GetSource()] = true
 		g.Vertices[e.GetDestination()] = true
 	}
+
 	g.connectAll()
 	g.initialize()
 	g.contract()
@@ -153,6 +154,9 @@ func (g *graph) contract() {
 					a = *g.Prev[a]
 				}
 				a = c
+				// Need to re-init the heap, since the re-calculation of the const
+				// may have change the ordering
+				heap.Init(g.P[a])
 			}
 		}
 	}
@@ -211,10 +215,12 @@ func (g *graph) expand(root string, out *[]Edge) {
 
 func (g *graph) dismantle(R *[]string, u string) {
 	for g.Parent[u] != nil {
-		for _, v := range g.Children[u] {
-			g.Parent[v] = nil
-			if len(g.Children[v]) != 0 {
-				*R = append(*R, v)
+		for _, v := range g.Children[*g.Parent[u]] {
+			if v != u {
+				g.Parent[v] = nil
+				if len(g.Children[v]) != 0 {
+					*R = append(*R, v)
+				}
 			}
 		}
 		u = *g.Parent[u]

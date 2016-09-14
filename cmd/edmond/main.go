@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"flag"
+	"fmt"
 	"github.com/ayllon/go/algo"
 	"github.com/tmc/dot"
 	"io"
@@ -92,6 +93,7 @@ func printDot(edges []algo.Edge) {
 			g.AddNode(dst)
 		}
 		de := dot.NewEdge(src, dst)
+		de.Set("label", fmt.Sprint(e.GetWeight()))
 		g.AddEdge(de)
 	}
 
