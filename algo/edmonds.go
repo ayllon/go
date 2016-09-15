@@ -1,4 +1,7 @@
+// Implemented from
 // http://www.cs.tau.ac.il/~zwick/grad-algo-13/directed-mst.pdf
+
+
 package algo
 
 import (
@@ -8,37 +11,49 @@ import (
 )
 
 type (
-	// Used to make the graph strongly connected
+	// dummyEdge is used to make the graph strongly connected
+	// Its weight is +Inf, to make it very unappealing
 	dummyEdge struct {
 		Source, Destination string
 	}
 
+	// graph stores the state of the algorithm
 	graph struct {
 		Vertices map[string]bool
 		Edges    []Edge
 
-		In       map[string]Edge
-		Const    map[string]float64
-		Prev     map[string]*string
-		Parent   map[string]*string
+		// In is the chosen incoming edge for a given vertex
+		In map[string]Edge
+		// Const is used to adjust the weight when a supervertex is created
+		Const map[string]float64
+		// Prev is the vertex preceding a given vertex
+		Prev map[string]*string
+		// Parent stores the supervertex in which the vertex was contracted
+		Parent map[string]*string
+		// Children stores the list of vertices contracted into the given vertex
 		Children map[string][]string
-		P        map[string]*edgeHeap
+		// P is a priority queue with all the incoming edges of a given vertex
+		P map[string]*edgeHeap
 	}
 
+	// edgeHeap implements the required methods by container/heap
 	edgeHeap struct {
 		edges []Edge
 		g     *graph
 	}
 )
 
+// Len returns the length of the heap
 func (eh edgeHeap) Len() int {
 	return len(eh.edges)
 }
 
+// Less returns true if the element i is less that the element j
 func (eh edgeHeap) Less(i, j int) bool {
 	return eh.g.weight(eh.edges[i]) < eh.g.weight(eh.edges[j])
 }
 
+// weight calculates the weight of the edge e as required by Edmond's algorithm
 func (g *graph) weight(e Edge) float64 {
 	w := e.GetWeight()
 	v := e.GetDestination()
@@ -49,14 +64,17 @@ func (g *graph) weight(e Edge) float64 {
 	return w
 }
 
+// Swap elements i and j
 func (eh edgeHeap) Swap(i, j int) {
 	eh.edges[i], eh.edges[j] = eh.edges[j], eh.edges[i]
 }
 
+// Push a new element into the heap
 func (eh *edgeHeap) Push(x interface{}) {
 	eh.edges = append(eh.edges, x.(Edge))
 }
 
+// Pop the first element from the heap
 func (eh *edgeHeap) Pop() interface{} {
 	old := eh.edges
 	n := len(old)
@@ -65,20 +83,24 @@ func (eh *edgeHeap) Pop() interface{} {
 	return x
 }
 
+// meld merges the src heap into the dst one, and clears the source
 func meld(dst, src *edgeHeap) {
 	dst.edges = append(dst.edges, src.edges...)
 	heap.Init(dst)
 	src.edges = nil
 }
 
+// GetSource returns the source of the edge
 func (d dummyEdge) GetSource() string {
 	return d.Source
 }
 
+// GetDestination returns the destination of the edge
 func (d dummyEdge) GetDestination() string {
 	return d.Destination
 }
 
+// GetWeight always return +Inf for a dummy edge
 func (d dummyEdge) GetWeight() float64 {
 	return math.Inf(0)
 }
@@ -133,6 +155,7 @@ func (g *graph) connectAll() {
 	}
 }
 
+// contract the graph into a single supervertex
 func (g *graph) contract() {
 	a := g.pickVertex()
 	for g.P[a].Len() > 0 {
@@ -154,14 +177,12 @@ func (g *graph) contract() {
 					a = *g.Prev[a]
 				}
 				a = c
-				// Need to re-init the heap, since the re-calculation of the const
-				// may have change the ordering
-				heap.Init(g.P[a])
 			}
 		}
 	}
 }
 
+// initialize the required data per vertex for the algorithm to work
 func (g *graph) initialize() {
 	for u := range g.Vertices {
 		g.initVertex(u)
@@ -171,6 +192,7 @@ func (g *graph) initialize() {
 	}
 }
 
+// initVertex initialized the data for the given vertex
 func (g *graph) initVertex(u string) {
 	g.In[u] = nil
 	g.Const[u] = 0
@@ -181,6 +203,7 @@ func (g *graph) initVertex(u string) {
 	heap.Init(g.P[u])
 }
 
+// pickVertex just needs to return any vertex from the graph to start the contraction phase
 func (g *graph) pickVertex() string {
 	for v := range g.Vertices {
 		return v
@@ -188,6 +211,7 @@ func (g *graph) pickVertex() string {
 	return ""
 }
 
+// find returns the isolated (super)vertex that contains u
 func (g *graph) find(u string) string {
 	for g.Parent[u] != nil {
 		u = *g.Parent[u]
@@ -195,8 +219,9 @@ func (g *graph) find(u string) string {
 	return u
 }
 
+// expand takes a contracted graph, and undo the contraction starting at the root
 func (g *graph) expand(root string, out *[]Edge) {
-	R := make([]string, 0)
+	var R []string
 	g.dismantle(&R, root)
 	for len(R) > 0 {
 		var c string
@@ -213,6 +238,7 @@ func (g *graph) expand(root string, out *[]Edge) {
 	}
 }
 
+// dismantle undos the contraction of the (super)vertex u, and puts the children into R
 func (g *graph) dismantle(R *[]string, u string) {
 	for g.Parent[u] != nil {
 		for _, v := range g.Children[*g.Parent[u]] {

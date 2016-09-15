@@ -13,29 +13,29 @@ import (
 	"strings"
 )
 
-type Edge struct {
+type edge struct {
 	source, destination string
 	weight              float64
 }
 
-func (e Edge) GetSource() string {
+func (e edge) GetSource() string {
 	return e.source
 }
 
-func (e Edge) GetDestination() string {
+func (e edge) GetDestination() string {
 	return e.destination
 }
 
-func (e Edge) GetWeight() float64 {
+func (e edge) GetWeight() float64 {
 	return e.weight
 }
 
 func populateGraph(paths ...string) []algo.Edge {
-	edges := make([]algo.Edge, 0)
+	var edges []algo.Edge
 
 	for _, path := range paths {
 		log.Println("Processing", path)
-		edge := Edge{}
+		edge := edge{}
 
 		fd, err := os.Open(path)
 		if err != nil {
@@ -112,7 +112,7 @@ func main() {
 
 	in := populateGraph(flag.Args()[1:]...)
 	inWeight := sumWeight(in)
-	out := make([]algo.Edge, 0)
+	var out []algo.Edge
 
 	log.Println("Calling Edmond's algorithm with root", root, "and", len(in), "edges, total weight", inWeight)
 	algo.Edmonds(root, in, &out)
